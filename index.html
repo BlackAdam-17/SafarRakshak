@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafarRakshak | Smart Travel App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark">S</div>
+          <div class="brand">SafarRakshak</div>
+        </div>
+        <nav>
+          <a href="#planner">Planner</a>
+          <a href="#discover">Discover</a>
+          <a href="#journey">Journey</a>
+          <a href="#support">Support</a>
+        </nav>
+      </header>
+
+      <main class="app-layout">
+        <section class="hero panel-surface">
+          <div class="hero-copy">
+            <p class="eyebrow">Smart travel companion</p>
+            <h1>Travel smarter, discover deeper.</h1>
+            <p class="lede">
+              Plan scenic routes, estimate daily spending, and stay prepared for every stop with your personal travel guide.
+            </p>
+            <div class="badge-row">
+              <span>Budget planner</span>
+              <span>Trip ideas</span>
+              <span>Safety tips</span>
+            </div>
+          </div>
+
+          <div class="planner-card" id="planner">
+            <h2>Plan my trip</h2>
+            <form id="tripForm">
+              <label>
+                Destination
+                <input id="destination" type="text" value="Manali" required />
+              </label>
+
+              <div class="grid-two">
+                <label>
+                  Days
+                  <input id="days" type="number" min="1" max="30" value="4" required />
+                </label>
+
+                <label>
+                  Budget (₹)
+                  <input id="budget" type="number" min="500" step="500" value="12000" required />
+                </label>
+              </div>
+
+              <label>
+                Travel style
+                <select id="style">
+                  <option value="adventure">Adventure</option>
+                  <option value="family">Family</option>
+                  <option value="solo">Solo</option>
+                  <option value="luxury">Luxury</option>
+                </select>
+              </label>
+
+              <button type="submit">Generate plan</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="stats" id="journey">
+          <article class="stat-card">
+            <span>Trip mood</span>
+            <strong id="tripMood">Adventure</strong>
+          </article>
+          <article class="stat-card">
+            <span>Daily budget</span>
+            <strong id="dailyBudget">₹0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Best time</span>
+            <strong id="bestTime">Early morning</strong>
+          </article>
+          <article class="stat-card">
+            <span>Travel score</span>
+            <strong id="travelScore">82/100</strong>
+          </article>
+        </section>
+
+        <section class="discover" id="discover">
+          <div class="section-heading">
+            <h3>Popular destinations</h3>
+            <span>Recommended for this season</span>
+          </div>
+          <div class="destination-grid" id="destinationGrid"></div>
+        </section>
+
+        <section class="content-grid" aria-live="polite">
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Suggested itinerary</h3>
+              <span class="chip" id="routeTag">Mountain escape</span>
+            </div>
+            <ul id="itineraryList" class="list"></ul>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Why this trip works</h3>
+            </div>
+            <ul id="highlightsList" class="list"></ul>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <h3>Packing checklist</h3>
+            </div>
+            <ul id="packingList" class="list"></ul>
+          </article>
+
+          <article class="panel" id="support">
+            <div class="panel-header">
+              <h3>Safety & support</h3>
+            </div>
+            <ul id="safetyList" class="list"></ul>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
