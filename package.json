@@ -1,0 +1,12 @@
+{
+  "name": "safar-rakshak",
+  "version": "1.0.0",
+  "description": "Smart travel companion app",
+  "type": "module",
+  "scripts": {
+    "dev": "py -m http.server 8080"
+  },
+  "keywords": ["travel", "planner", "budget"],
+  "author": "",
+  "license": "ISC"
+}

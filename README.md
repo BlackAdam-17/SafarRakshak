@@ -1,28 +1,30 @@
-# SafarRakshak
-A Smart Sathi for every Journey
+# Safar Rakshak 1.0
 
-## Overview
-SafarRakshak is a lightweight travel planning app built to help travelers by:
-- suggesting a basic trip itinerary
-- estimating a daily budget
-- listing travel essentials to pack
-- providing safety reminders and useful contact suggestions
+A lightweight, browser-based travel planning companion.
 
-## Run it locally
-1. Open a terminal in this project folder.
-2. Run:
-   `py -m http.server 8000`
-3. Open this in your browser:
-   `http://localhost:8000`
+## Features
 
-## Files
-- [index.html](index.html) – main UI
-- [style.css](style.css) – styling
-- [app.js](app.js) – trip planning logic
+- Trip planning for a custom destination or a suggested getaway
+- Day-by-day starter itinerary and travel-style suggestions
+- Daily budget target and editable budget allocation guide
+- Adventure, family, solo, and comfort-first travel styles
+- Packing checklist with progress saved on this device
+- Save and restore a trip plan using browser storage
+- Share a plan with the device share menu or copy it to the clipboard
+- Download a plain-text trip plan
+- Save one trusted travel contact locally for quick access
+- Responsive layout, keyboard focus styles, and reduced-motion support
 
-## Features included
-- destination travel planner
-- budget-based daily estimate
-- packing checklist
-- safety tips
-- travel style variations (adventure, family, solo, luxury)
+Trip ideas and budget allocations are planning aids. Confirm prices, bookings, opening times, weather, transport, and safety information with current local sources.
+
+## Run locally
+
+Open a terminal in this folder and run:
+
+```powershell
+py -m http.server 8080
+```
+
+Then visit <http://localhost:8080>.
+
+The page uses Tailwind CSS's browser CDN, so an internet connection is needed to load the Tailwind utilities and web fonts. App plans and the saved contact remain in the browser's local storage.

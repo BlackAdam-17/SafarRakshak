@@ -1,139 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SafarRakshak | Smart Travel App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f5ef" />
+    <meta name="description" content="Plan your journey, organize your budget, and travel prepared with Safar Rakshak." />
+    <title>Safar Rakshak — Your journey, thoughtfully planned</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              forest: { 50: '#eef5f1', 100: '#dcebe4', 600: '#28735d', 700: '#1d5e4b', 800: '#174b3e', 900: '#123b35' },
+              sand: '#f6f5ef', saffron: '#e4a640'
+            },
+            boxShadow: { soft: '0 16px 42px rgba(25, 53, 43, .08)' },
+            fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+          }
+        }
+      };
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-family: 'DM Sans', sans-serif; }
+      h1, h2, h3, .brand { font-family: 'Manrope', sans-serif; }
+      .destination-art { background: linear-gradient(145deg, var(--from), var(--to)); }
+      .check-row:has(input:checked) .check-text { color: #718078; text-decoration: line-through; }
+      :focus-visible { outline: 3px solid #e4a640; outline-offset: 3px; }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    </style>
   </head>
-  <body>
-    <div class="page-shell">
-      <header class="topbar">
-        <div class="brand-wrap">
-          <div class="brand-mark">S</div>
-          <div class="brand">SafarRakshak</div>
-        </div>
-        <nav>
-          <a href="#planner">Planner</a>
-          <a href="#discover">Discover</a>
-          <a href="#journey">Journey</a>
-          <a href="#support">Support</a>
+  <body class="min-h-screen bg-sand text-slate-800 antialiased selection:bg-forest-100">
+    <div class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <header class="flex flex-wrap items-center justify-between gap-4 py-5">
+        <a class="flex items-center gap-3 no-underline" href="#top" aria-label="Safar Rakshak home">
+          <span class="grid h-11 w-11 place-items-center rounded-2xl bg-forest-800 text-xl font-extrabold text-white shadow-soft" aria-hidden="true">S</span>
+          <span class="brand text-xl font-extrabold tracking-tight text-forest-900">Safar Rakshak <span class="ml-1 rounded-full bg-forest-100 px-2 py-1 align-middle font-sans text-[10px] font-bold uppercase tracking-wider text-forest-700">1.0</span></span>
+        </a>
+        <nav class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600 sm:gap-6" aria-label="Main navigation">
+          <a class="rounded-lg px-2 py-2 hover:text-forest-800" href="#planner">Plan</a>
+          <a class="rounded-lg px-2 py-2 hover:text-forest-800" href="#discover">Discover</a>
+          <a class="rounded-lg px-2 py-2 hover:text-forest-800" href="#your-plan">Your plan</a>
+          <a class="rounded-lg px-2 py-2 hover:text-forest-800" href="#safety">Safety</a>
         </nav>
       </header>
 
-      <main class="app-layout">
-        <section class="hero panel-surface">
-          <div class="hero-copy">
-            <p class="eyebrow">Smart travel companion</p>
-            <h1>Travel smarter, discover deeper.</h1>
-            <p class="lede">
-              Plan scenic routes, estimate daily spending, and stay prepared for every stop with your personal travel guide.
-            </p>
-            <div class="badge-row">
-              <span>Budget planner</span>
-              <span>Trip ideas</span>
-              <span>Safety tips</span>
+      <main id="top" class="space-y-8">
+        <section class="relative isolate overflow-hidden rounded-[2rem] bg-forest-900 px-6 py-9 text-white shadow-soft sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+          <div class="absolute -right-16 -top-24 -z-10 h-80 w-80 rounded-full bg-forest-600/40 blur-3xl"></div>
+          <div class="grid items-center gap-9 lg:grid-cols-[1.1fr_.9fr]">
+            <div class="max-w-2xl">
+              <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[.16em] text-emerald-100"><span class="h-2 w-2 rounded-full bg-saffron"></span> Your thoughtful travel companion</p>
+              <h1 class="text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">A better journey starts with a plan.</h1>
+              <p class="mt-5 max-w-xl text-base leading-7 text-emerald-50/80 sm:text-lg">Bring your trip ideas, daily budget, packing list, and practical reminders together in one calm place.</p>
+              <div class="mt-7 flex flex-wrap gap-2 text-sm font-semibold text-white/90"><span class="rounded-full bg-white/10 px-3 py-2">✦ Simple itinerary</span><span class="rounded-full bg-white/10 px-3 py-2">₹ Budget planner</span><span class="rounded-full bg-white/10 px-3 py-2">✓ Ready-to-go checklist</span></div>
             </div>
-          </div>
 
-          <div class="planner-card" id="planner">
-            <h2>Plan my trip</h2>
-            <form id="tripForm">
-              <label>
-                Destination
-                <input id="destination" type="text" value="Manali" required />
-              </label>
-
-              <div class="grid-two">
-                <label>
-                  Days
-                  <input id="days" type="number" min="1" max="30" value="4" required />
-                </label>
-
-                <label>
-                  Budget (₹)
-                  <input id="budget" type="number" min="500" step="500" value="12000" required />
-                </label>
+            <section id="planner" class="scroll-mt-6 rounded-3xl bg-white p-5 text-slate-800 shadow-xl sm:p-7" aria-labelledby="planner-title">
+              <div class="mb-5 flex items-start justify-between gap-3">
+                <div><p class="text-xs font-bold uppercase tracking-[.16em] text-forest-700">Start here</p><h2 id="planner-title" class="mt-1 text-2xl font-extrabold text-forest-900">Plan my trip</h2></div>
+                <span class="rounded-xl bg-forest-50 px-3 py-2 text-xs font-bold text-forest-700">Takes a minute</span>
               </div>
-
-              <label>
-                Travel style
-                <select id="style">
-                  <option value="adventure">Adventure</option>
-                  <option value="family">Family</option>
-                  <option value="solo">Solo</option>
-                  <option value="luxury">Luxury</option>
-                </select>
-              </label>
-
-              <button type="submit">Generate plan</button>
-            </form>
+              <form id="tripForm" class="space-y-4">
+                <label class="block text-sm font-bold text-slate-700" for="destination">Where to?
+                  <input class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none transition focus:border-forest-600 focus:bg-white" id="destination" name="destination" list="destinationOptions" placeholder="e.g. Manali" value="Manali" maxlength="60" required />
+                  <datalist id="destinationOptions"></datalist>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="block text-sm font-bold text-slate-700" for="days">Days
+                    <input class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none transition focus:border-forest-600 focus:bg-white" id="days" name="days" type="number" min="1" max="30" value="4" required />
+                  </label>
+                  <label class="block text-sm font-bold text-slate-700" for="budget">Total budget (₹)
+                    <input class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none transition focus:border-forest-600 focus:bg-white" id="budget" name="budget" type="number" min="500" max="10000000" step="500" value="12000" required />
+                  </label>
+                </div>
+                <label class="block text-sm font-bold text-slate-700" for="style">Travel style
+                  <select class="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium outline-none transition focus:border-forest-600 focus:bg-white" id="style" name="style">
+                    <option value="adventure">Adventure</option><option value="family">Family</option><option value="solo">Solo</option><option value="luxury">Comfort & luxury</option>
+                  </select>
+                </label>
+                <button class="w-full rounded-xl bg-forest-700 px-5 py-3.5 font-bold text-white shadow-lg shadow-forest-900/15 transition hover:-translate-y-0.5 hover:bg-forest-800" type="submit">Create my journey <span aria-hidden="true">→</span></button>
+                <p class="text-center text-xs text-slate-500">Your trip plan stays in this browser.</p>
+              </form>
+            </section>
           </div>
         </section>
 
-        <section class="stats" id="journey">
-          <article class="stat-card">
-            <span>Trip mood</span>
-            <strong id="tripMood">Adventure</strong>
-          </article>
-          <article class="stat-card">
-            <span>Daily budget</span>
-            <strong id="dailyBudget">₹0</strong>
-          </article>
-          <article class="stat-card">
-            <span>Best time</span>
-            <strong id="bestTime">Early morning</strong>
-          </article>
-          <article class="stat-card">
-            <span>Travel score</span>
-            <strong id="travelScore">82/100</strong>
-          </article>
+        <section id="journey" class="grid scroll-mt-6 grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Trip overview">
+          <article class="rounded-2xl border border-forest-900/5 bg-white p-4 shadow-soft sm:p-5"><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Travel style</p><p class="mt-2 text-xl font-extrabold text-forest-900" id="tripMood">Adventure</p></article>
+          <article class="rounded-2xl border border-forest-900/5 bg-white p-4 shadow-soft sm:p-5"><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Daily budget</p><p class="mt-2 text-xl font-extrabold text-forest-900" id="dailyBudget">₹3,000</p></article>
+          <article class="rounded-2xl border border-forest-900/5 bg-white p-4 shadow-soft sm:p-5"><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Suggested start</p><p class="mt-2 text-xl font-extrabold text-forest-900" id="bestTime">Early morning</p></article>
+          <article class="rounded-2xl border border-forest-900/5 bg-white p-4 shadow-soft sm:p-5" title="An indicative planning score based on your daily budget input, not a price forecast."><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Planning score</p><p class="mt-2 text-xl font-extrabold text-forest-900" id="travelScore">82/100</p></article>
         </section>
 
-        <section class="discover" id="discover">
-          <div class="section-heading">
-            <h3>Popular destinations</h3>
-            <span>Recommended for this season</span>
+        <section id="discover" class="scroll-mt-6">
+          <div class="mb-4 flex flex-wrap items-end justify-between gap-2"><div><p class="text-xs font-bold uppercase tracking-[.16em] text-forest-700">Find your next stop</p><h2 class="mt-1 text-2xl font-extrabold text-forest-900">Popular getaways</h2></div><p class="text-sm text-slate-500">Choose a place to fill your trip form</p></div>
+          <div id="destinationGrid" class="grid grid-cols-2 gap-3 lg:grid-cols-4"></div>
+        </section>
+
+        <section id="your-plan" class="scroll-mt-6 space-y-4" aria-labelledby="planHeading" aria-live="polite">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div><p class="text-xs font-bold uppercase tracking-[.16em] text-forest-700">Made for your journey</p><h2 id="planHeading" class="mt-1 text-2xl font-extrabold text-forest-900">Your trip plan <span id="planDestination" class="text-forest-600">to Manali</span></h2><p class="mt-1 text-sm text-slate-500" id="planMeta">4 days · Adventure</p></div>
+            <div class="flex flex-wrap gap-2"><button class="rounded-xl border border-forest-700/20 bg-white px-4 py-2.5 text-sm font-bold text-forest-800 transition hover:bg-forest-50" id="savePlan" type="button">Save plan</button><button class="rounded-xl border border-forest-700/20 bg-white px-4 py-2.5 text-sm font-bold text-forest-800 transition hover:bg-forest-50" id="sharePlan" type="button">Share</button><button class="rounded-xl border border-forest-700/20 bg-white px-4 py-2.5 text-sm font-bold text-forest-800 transition hover:bg-forest-50" id="downloadPlan" type="button">Download</button></div>
           </div>
-          <div class="destination-grid" id="destinationGrid"></div>
+          <p id="statusMessage" class="min-h-5 text-sm font-semibold text-forest-700" role="status" aria-live="polite"></p>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <article class="rounded-3xl border border-forest-900/5 bg-white p-5 shadow-soft sm:p-6">
+              <div class="mb-4 flex items-center justify-between gap-2"><div><p class="text-xs font-bold uppercase tracking-wider text-forest-700">One day at a time</p><h3 class="mt-1 text-xl font-extrabold text-forest-900">Suggested itinerary</h3></div><span id="routeTag" class="rounded-full bg-forest-50 px-3 py-1.5 text-xs font-bold text-forest-700">Adventure route</span></div>
+              <ol id="itineraryList" class="space-y-3"></ol>
+            </article>
+            <article class="rounded-3xl border border-forest-900/5 bg-white p-5 shadow-soft sm:p-6">
+              <div class="mb-4 flex items-start justify-between gap-2"><div><p class="text-xs font-bold uppercase tracking-wider text-forest-700">Know before you go</p><h3 class="mt-1 text-xl font-extrabold text-forest-900">Budget breakdown</h3></div><button id="resetBudget" class="rounded-lg px-2 py-1 text-xs font-bold text-forest-700 hover:bg-forest-50" type="button">Reset split</button></div>
+              <p class="mb-4 text-sm leading-6 text-slate-500">A suggested way to divide your total budget. Adjust the amounts to match your plans.</p>
+              <div id="budgetBreakdown" class="space-y-4"></div>
+              <p id="budgetNote" class="mt-5 rounded-xl bg-amber-50 p-3 text-sm leading-5 text-amber-900"></p>
+            </article>
+            <article class="rounded-3xl border border-forest-900/5 bg-white p-5 shadow-soft sm:p-6">
+              <div class="mb-4"><p class="text-xs font-bold uppercase tracking-wider text-forest-700">A good match for you</p><h3 class="mt-1 text-xl font-extrabold text-forest-900">Why this trip works</h3></div>
+              <ul id="highlightsList" class="space-y-3"></ul>
+            </article>
+            <article class="rounded-3xl border border-forest-900/5 bg-white p-5 shadow-soft sm:p-6">
+              <div class="mb-4 flex items-center justify-between"><div><p class="text-xs font-bold uppercase tracking-wider text-forest-700">Don't leave it behind</p><h3 class="mt-1 text-xl font-extrabold text-forest-900">Packing checklist</h3></div><span id="packingProgress" class="rounded-full bg-forest-50 px-3 py-1.5 text-xs font-bold text-forest-700">0/0 packed</span></div>
+              <ul id="packingList" class="grid gap-3 sm:grid-cols-2"></ul>
+            </article>
+            <article class="rounded-3xl border border-forest-900/5 bg-white p-5 shadow-soft sm:p-6" id="safety">
+              <div class="mb-4"><p class="text-xs font-bold uppercase tracking-wider text-forest-700">A little preparation goes a long way</p><h3 class="mt-1 text-xl font-extrabold text-forest-900">Safety & support</h3></div>
+              <ul id="safetyList" class="space-y-3"></ul>
+              <div class="mt-5 rounded-2xl bg-forest-50 p-4"><p class="text-sm font-extrabold text-forest-900">Before you head out</p><p class="mt-1 text-sm leading-6 text-slate-600">Save your accommodation address and local emergency contacts. Check official travel and weather updates for your destination.</p></div>
+              <form id="contactForm" class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]" aria-label="Save a trusted travel contact">
+                <label class="text-xs font-bold text-slate-600" for="contactName">Trusted contact<input id="contactName" class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium" maxlength="60" placeholder="Name" /></label>
+                <label class="text-xs font-bold text-slate-600" for="contactPhone">Phone number<input id="contactPhone" class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium" type="tel" maxlength="24" placeholder="+91 98765 43210" /></label>
+                <button class="self-end rounded-xl bg-forest-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-forest-800" type="submit">Save</button>
+                <p id="savedContact" class="text-xs text-slate-600 sm:col-span-3" aria-live="polite"></p>
+              </form>
+            </article>
+          </div>
         </section>
-
-        <section class="content-grid" aria-live="polite">
-          <article class="panel">
-            <div class="panel-header">
-              <h3>Suggested itinerary</h3>
-              <span class="chip" id="routeTag">Mountain escape</span>
-            </div>
-            <ul id="itineraryList" class="list"></ul>
-          </article>
-
-          <article class="panel">
-            <div class="panel-header">
-              <h3>Why this trip works</h3>
-            </div>
-            <ul id="highlightsList" class="list"></ul>
-          </article>
-
-          <article class="panel">
-            <div class="panel-header">
-              <h3>Packing checklist</h3>
-            </div>
-            <ul id="packingList" class="list"></ul>
-          </article>
-
-          <article class="panel" id="support">
-            <div class="panel-header">
-              <h3>Safety & support</h3>
-            </div>
-            <ul id="safetyList" class="list"></ul>
-          </article>
-        </section>
+        <footer class="border-t border-forest-900/10 pt-5 text-center text-xs leading-5 text-slate-500">Safar Rakshak creates a planning starting point. Confirm travel details, prices, opening hours, weather, and safety guidance with current local sources.</footer>
       </main>
     </div>
-
     <script src="app.js"></script>
   </body>
 </html>
