@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const checkIn=new mongoose.Schema({label:{type:String,required:true,trim:true,maxlength:100},scheduledAt:{type:Date,default:null},completed:{type:Boolean,default:false}},{timestamps:true});
+const schema=new mongoose.Schema({user:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},destination:{type:String,required:true,trim:true,maxlength:80},departDate:{type:String,default:''},returnDate:{type:String,default:''},trustedContactName:{type:String,default:'',maxlength:60},trustedContactPhone:{type:String,default:'',maxlength:24},itinerary:{type:String,default:'',maxlength:1200},checkIns:{type:[checkIn],default:[]}},{timestamps:true});
+schema.index({user:1,updatedAt:-1});export const Trip=mongoose.model('Trip',schema);

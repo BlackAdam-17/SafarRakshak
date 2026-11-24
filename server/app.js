@@ -1,0 +1,18 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import authRoutes from './routes/auth.js';
+import tripRoutes from './routes/trips.js';
+import {config} from './config.js';
+export const app=express();
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(cors({origin:config.clientOrigin,methods:['GET','POST','PUT','DELETE'],allowedHeaders:['Content-Type','Authorization']}));
+app.use(express.json({limit:'20kb'}));
+app.use('/api',rateLimit({windowMs:15*60*1000,limit:120,standardHeaders:'draft-8',legacyHeaders:false}));
+app.get('/api/health',(_req,res)=>res.json({status:'ok',service:'SafarRakshak API'}));
+app.use('/api/auth',authRoutes);
+app.use('/api/trips',tripRoutes);
+app.use((req,res)=>res.status(404).json({error:'API endpoint not found.'}));
+app.use((error,_req,res,_next)=>{if(error?.code===11000)return res.status(409).json({error:'An account with this email already exists.'});console.error('API request failed:',error);return res.status(500).json({error:'An unexpected server error occurred.'});});

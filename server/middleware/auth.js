@@ -1,0 +1,4 @@
+import jwt from 'jsonwebtoken';
+import {config} from '../config.js';
+import {User} from '../models/User.js';
+export async function requireAuth(req,res,next){try{const [scheme,token]=(req.headers.authorization||'').split(' ');if(scheme!=='Bearer'||!token)return res.status(401).json({error:'Authentication required.'});const payload=jwt.verify(token,config.jwtSecret,{issuer:'safarrakshak-api',audience:'safarrakshak-client'});const user=await User.findById(payload.sub).select('_id fullName email');if(!user)return res.status(401).json({error:'Account is no longer available.'});req.user=user;return next();}catch{return res.status(401).json({error:'Session is invalid or expired. Please sign in again.'});}}

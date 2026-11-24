@@ -1,0 +1,12 @@
+import {Router} from 'express';
+import {z} from 'zod';
+import {Trip} from '../models/Trip.js';
+import {requireAuth} from '../middleware/auth.js';
+const router=Router();
+const schema=z.object({destination:z.string().trim().min(1).max(80),departDate:z.string().max(10).optional(),returnDate:z.string().max(10).optional(),trustedContactName:z.string().max(60).optional(),trustedContactPhone:z.string().max(24).optional(),itinerary:z.string().max(1200).optional(),checkIns:z.array(z.object({label:z.string().trim().min(1).max(100),scheduledAt:z.string().datetime().nullable().optional(),completed:z.boolean().optional()})).max(100).optional()});
+router.use(requireAuth);
+router.get('/',async(req,res,next)=>{try{return res.json({trips:await Trip.find({user:req.user._id}).sort({updatedAt:-1}).lean()});}catch(e){return next(e);}});
+router.post('/',async(req,res,next)=>{try{const p=schema.safeParse(req.body);if(!p.success)return res.status(400).json({error:'Trip details are invalid.'});return res.status(201).json({trip:await Trip.create({...p.data,user:req.user._id})});}catch(e){return next(e);}});
+router.put('/:id',async(req,res,next)=>{try{const p=schema.safeParse(req.body);if(!p.success)return res.status(400).json({error:'Trip details are invalid.'});const trip=await Trip.findOneAndUpdate({_id:req.params.id,user:req.user._id},p.data,{new:true,runValidators:true});if(!trip)return res.status(404).json({error:'Trip not found.'});return res.json({trip});}catch(e){return next(e);}});
+router.delete('/:id',async(req,res,next)=>{try{const trip=await Trip.findOneAndDelete({_id:req.params.id,user:req.user._id});if(!trip)return res.status(404).json({error:'Trip not found.'});return res.status(204).end();}catch(e){return next(e);}});
+export default router;
