@@ -37,6 +37,8 @@ jobs:
             app.js
             account-ui.js
             trip-area.js
+            navigator.html
+            navigator.js
             styles.css
           )
 

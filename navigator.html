@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f6f1" />
+    <meta name="description" content="Compare available travel route options with SafarRakshak. Route suggestions are not safety ratings." />
+    <title>Safety Route Navigator — SafarRakshak</title>
+    <link rel="stylesheet" href="./styles.css?v=3" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="SafarRakshak home">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span class="brand-name">SafarRakshak <span>Travel safety</span></span>
+        </a>
+        <div class="topbar-actions">
+          <nav class="nav" aria-label="Main navigation">
+            <a href="./index.html#journey">My journey</a>
+            <a href="./index.html#check-ins">Check-ins</a>
+            <a href="./trip-area.html">Trip Area</a>
+            <a href="./navigator.html" aria-current="page">Route Navigator</a>
+            <a href="./index.html#emergency">Emergency help</a>
+          </nav>
+          <div class="account-area" id="accountArea"></div>
+        </div>
+      </header>
+      <main>
+        <section class="section" aria-labelledby="navigator-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Plan your journey</p>
+              <h1 id="navigator-title">Safety Route Navigator</h1>
+            </div>
+            <p>Compare route options and open turn-by-turn navigation in your map application.</p>
+          </div>
+          <div class="route-layout">
+            <article class="card">
+              <h2>Route details</h2>
+              <p class="card-intro">Enter a starting point and destination. You can also use your current location as the starting point.</p>
+              <form class="route-form" id="routeForm">
+                <label class="field" for="routeOrigin">Starting point
+                  <input id="routeOrigin" name="origin" maxlength="120" placeholder="e.g. Lucknow Railway Station" autocomplete="street-address" required />
+                </label>
+                <button class="button button-outline button-small" id="useLocation" type="button">Use my current location</button>
+                <label class="field" for="routeDestination">Destination
+                  <input id="routeDestination" name="destination" maxlength="120" placeholder="e.g. Hazratganj, Lucknow" required />
+                </label>
+                <div class="button-row">
+                  <button class="button button-primary" id="findRoutes" type="submit">Find route options</button>
+                  <button class="button button-outline" id="clearRoutes" type="reset">Clear</button>
+                </div>
+              </form>
+              <p class="status" id="routeStatus" role="status" aria-live="polite">Your location is requested only when you select the location button.</p>
+              <div class="route-results" id="routeResults" aria-label="Available route options"></div>
+              <div class="route-summary" id="routeSummary"></div>
+              <p class="local-note route-note"><strong>Important:</strong> Route options are based on OpenStreetMap road data and routing estimates. They are not verified safe routes and do not assess crime, lighting, traffic conditions, road closures, or emergency response. Confirm conditions locally and use official guidance.</p>
+            </article>
+            <section class="card" aria-label="Route map">
+              <h2>Map preview</h2>
+              <p class="card-intro">The map displays the selected route when route data is available.</p>
+              <div id="routeMap" class="route-map"><div class="route-map-placeholder">Enter a starting point and destination to preview route options.</div></div>
+              <p class="local-note">Map data © OpenStreetMap contributors. Routing provided by the public OSRM demo service.</p>
+            </section>
+          </div>
+        </section>
+      </main>
+      <footer>SafarRakshak · Route suggestions support planning and are not a guarantee of personal safety.</footer>
+    </div>
+    <script type="module" src="./navigator.js?v=1"></script>
+  </body>
+</html>
