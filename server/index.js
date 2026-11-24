@@ -9,9 +9,11 @@ const server=app.listen(config.port,()=> {
 });
 
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+let shuttingDown=false;
+let connecting=true;
 
 async function connectDatabase(){
-  while(!server.closeRequested){
+  while(!shuttingDown){
     try{
       await mongoose.connect(config.mongoUri,{serverSelectionTimeoutMS:10000});
       console.log('MongoDB connection established.');
@@ -24,17 +26,17 @@ async function connectDatabase(){
 }
 
 mongoose.connection.on('disconnected',()=>{
-  console.warn('MongoDB disconnected. Reconnection will be attempted.');
-  if(!connecting) {
+  console.warn('MongoDB disconnected.');
+  if(!connecting&&!shuttingDown){
     connecting=true;
     connectDatabase().finally(()=>{connecting=false;});
   }
 });
 
-let connecting=true;
 connectDatabase().finally(()=>{connecting=false;});
 
 async function shutdown(signal){
+  shuttingDown=true;
   console.log(signal+' received; shutting down gracefully.');
   server.close(async()=>{
     await mongoose.disconnect();
