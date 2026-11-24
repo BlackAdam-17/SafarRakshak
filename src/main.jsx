@@ -10,15 +10,15 @@ const shortcuts = [
 
 function TravelShortcuts() {
   return (
-    <section className="sr:my-8 sr:rounded-[26px] sr:border sr:border-[#e2e9e3] sr:bg-white sr:p-6 sr:shadow-[0_12px_34px_rgba(25,53,43,0.05)] sm:sr:p-8" aria-labelledby="shortcuts-title">
-      <div className="sr:flex sr:flex-col sr:gap-3 sm:sr:flex-row sm:sr:items-end sm:sr:justify-between">
+    <section className="sr:my-8 sr:rounded-[26px] sr:border sr:border-[#e2e9e3] sr:bg-white sr:p-6 sr:shadow-[0_12px_34px_rgba(25,53,43,0.05)] sr:sm:p-8" aria-labelledby="shortcuts-title">
+      <div className="sr:flex sr:flex-col sr:gap-3 sr:sm:flex-row sr:sm:items-end sr:sm:justify-between">
         <div>
           <p className="sr:mb-2 sr:text-[10px] sr:font-extrabold sr:uppercase sr:tracking-[.18em] sr:text-[#39715b]">Your travel toolkit</p>
           <h2 id="shortcuts-title" className="sr:text-2xl sr:font-extrabold sr:tracking-[-.045em] sr:text-[#193f34]">A clearer way to prepare</h2>
         </div>
         <p className="sr:max-w-sm sr:text-xs sr:leading-6 sr:text-[#64736c]">Quick access to the tools that help you organise your trip before you leave.</p>
       </div>
-      <div className="sr:mt-6 sr:grid sr:grid-cols-1 sr:gap-3 md:sr:grid-cols-3">
+      <div className="sr:mt-6 sr:grid sr:grid-cols-1 sr:gap-3 sr:md:grid-cols-3">
         {shortcuts.map((item) => (
           <a key={item.number} href={item.href} className="sr:group sr:flex sr:min-h-44 sr:flex-col sr:rounded-2xl sr:border sr:border-[#e6ece7] sr:bg-[#fbfcfa] sr:p-5 sr:no-underline sr:transition sr:duration-200 sr:hover:-translate-y-1 sr:hover:border-[#b8cfc0] sr:hover:bg-[#f2f7f3] sr:focus-visible:outline-2 sr:focus-visible:outline-offset-4 sr:focus-visible:outline-[#d6a64a]">
             <div className="sr:flex sr:items-center sr:justify-between">
