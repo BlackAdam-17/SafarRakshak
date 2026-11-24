@@ -57,23 +57,74 @@ locationButton.addEventListener('click', async () => {
   }
 });
 
-async function geocode(query) {
+let lastNominatimRequestAt = 0;
+
+async function geocodeWithPhoton(query) {
+  const url = new URL('https://photon.komoot.io/api/');
+  url.search = new URLSearchParams({ q: query, limit: '1', lang: 'en' }).toString();
+  const response = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Photon place search returned HTTP ' + response.status);
+  const data = await response.json();
+  const feature = data.features?.[0];
+  if (!feature?.geometry?.coordinates) return null;
+  const [lon, lat] = feature.geometry.coordinates;
+  const properties = feature.properties || {};
+  const label = [
+    properties.name,
+    properties.street,
+    properties.city || properties.locality,
+    properties.state,
+    properties.country
+  ].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ');
+  return { lat: Number(lat), lon: Number(lon), label: label || query };
+}
+
+async function geocodeWithNominatim(query) {
+  // Public Nominatim usage is limited to one request per second.
+  const wait = Math.max(0, 1100 - (Date.now() - lastNominatimRequestAt));
+  if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+  lastNominatimRequestAt = Date.now();
+
   const url = new URL('https://nominatim.openstreetmap.org/search');
   url.search = new URLSearchParams({
     q: query,
     format: 'jsonv2',
     limit: '1',
-    addressdetails: '1'
+    addressdetails: '1',
   }).toString();
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error('The place search service is temporarily unavailable.');
+  if (!response.ok) throw new Error('Backup place search returned HTTP ' + response.status);
   const places = await response.json();
-  if (!places.length) throw new Error('Could not find “' + query + '”. Try a more specific place or address.');
+  if (!places.length) return null;
   return {
     lat: Number(places[0].lat),
     lon: Number(places[0].lon),
     label: places[0].display_name
   };
+}
+
+async function geocode(query) {
+  let photonError;
+  try {
+    const place = await geocodeWithPhoton(query);
+    if (place) return place;
+  } catch (error) {
+    photonError = error;
+    console.warn('Primary place search failed; trying backup:', error);
+  }
+
+  try {
+    const place = await geocodeWithNominatim(query);
+    if (place) return place;
+  } catch (error) {
+    console.error('Backup place search failed:', error);
+    throw new Error('Place search is temporarily unavailable. Please try again in a moment, or enter a more specific location.');
+  }
+
+  if (photonError) {
+    throw new Error('Could not find “' + query + '”. Check the spelling and include the city or area.');
+  }
+  throw new Error('Could not find “' + query + '”. Try a more specific place or address.');
 }
 
 function formatDistance(meters) {
@@ -225,12 +276,20 @@ form.addEventListener('submit', async (event) => {
     routes = data.routes.slice(0, 3);
     selectedRoute = 0;
     renderResults();
-    renderMap(origin, destination);
-    showStatus('Route options loaded. Compare the estimates and choose a route to preview.');
+    try {
+      renderMap(origin, destination);
+      showStatus('Route options loaded. Compare the estimates and choose a route to preview.');
+    } catch (mapError) {
+      console.warn('Map preview is unavailable; keeping route details available:', mapError);
+      mapElement.innerHTML = '<div class="route-map-placeholder">The interactive map could not load. Your route estimates are still available above; use Google Maps for turn-by-turn directions.</div>';
+      showStatus('Route options found. The map preview did not load, but route estimates and Google Maps directions are available.');
+    }
   } catch (error) {
     console.error('Route search failed:', error);
     showStatus(error.message || 'Could not calculate route options. Please try again.', true);
     routes = [];
+    results.replaceChildren();
+    summary.replaceChildren();
     clearMap();
     if (map) {
       map.remove();
