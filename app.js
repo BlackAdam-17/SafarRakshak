@@ -1,4 +1,6 @@
-import { accountReady, apiRequest, getCurrentAccount } from './account-ui.js?v=3';
+import { getCurrentAccount } from './account-ui.js?v=4';
+
+const ANONYMOUS_STORAGE_KEY = 'safar-rakshak.safety-plan.v2';
 const $ = (selector) => document.querySelector(selector);
 const tripForm = $('#tripForm');
 const stationStatus = $('#stationStatus');
@@ -17,53 +19,61 @@ function emptyPlan() {
   };
 }
 
+function planStorageKey(account = getCurrentAccount()) {
+  return account ? `${ANONYMOUS_STORAGE_KEY}.${account.id}` : ANONYMOUS_STORAGE_KEY;
+}
+
 let plan = emptyPlan();
-let currentAccount = null;
-let accountGeneration = 0;
 
 function showStatus(element, message, isError = false) {
   element.textContent = message;
   element.classList.toggle('error', isError);
 }
 
-function setPlanFormsEnabled(enabled) {
-  for (const form of [tripForm, $('#checkinForm')]) {
-    form.querySelectorAll('input, textarea, button').forEach((control) => {
-      control.disabled = !enabled;
-    });
+function loadPlan() {
+  try {
+    plan = emptyPlan();
+    const stored = localStorage.getItem(planStorageKey());
+    if (!stored) return true;
+    const value = JSON.parse(stored);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error('Saved safety plan has an invalid format.');
+    }
+
+    plan = {
+      ...emptyPlan(),
+      destination: typeof value.destination === 'string' ? value.destination : '',
+      departDate: typeof value.departDate === 'string' ? value.departDate : '',
+      returnDate: typeof value.returnDate === 'string' ? value.returnDate : '',
+      contactName: typeof value.contactName === 'string' ? value.contactName : '',
+      contactPhone: typeof value.contactPhone === 'string' ? value.contactPhone : '',
+      itinerary: typeof value.itinerary === 'string' ? value.itinerary : '',
+      checkIns: Array.isArray(value.checkIns)
+        ? value.checkIns.filter((item) => item && typeof item.id === 'string' && typeof item.label === 'string')
+          .map((item) => ({
+            id: item.id,
+            label: item.label,
+            time: typeof item.time === 'string' ? item.time : '',
+            done: item.done === true
+          }))
+        : []
+    };
+    return true;
+  } catch (error) {
+    console.error('Could not load the saved safety plan:', error);
+    showStatus(planStatus, 'Could not load saved trip details. Check browser storage settings.', true);
+    return false;
   }
 }
 
-async function applyAccountState(account) {
-  const generation = ++accountGeneration;
-  currentAccount = account;
-  setPlanFormsEnabled(Boolean(account));
-
-  if (!account) {
-    plan = emptyPlan();
-    renderPlan();
-    showStatus(planStatus, 'Sign in or register to save a trip plan and check-ins.');
-    return;
-  }
-
+function persistPlan() {
   try {
-    const response = await apiRequest('/api/plan');
-    if (generation !== accountGeneration) return;
-    if (!response.plan || typeof response.plan !== 'object') {
-      throw new Error('The server returned an invalid safety plan.');
-    }
-    plan = {
-      ...emptyPlan(),
-      ...response.plan,
-      checkIns: Array.isArray(response.plan.checkIns) ? response.plan.checkIns : []
-    };
-    renderPlan();
-    showStatus(planStatus, 'Signed in. Your safety plan is loaded from your account.');
+    localStorage.setItem(planStorageKey(), JSON.stringify(plan));
+    return true;
   } catch (error) {
-    console.error('Could not load the account safety plan:', error);
-    if (generation === accountGeneration) {
-      showStatus(planStatus, error.message || 'Could not load your safety plan. Try again.', true);
-    }
+    console.error('Could not save the safety plan:', error);
+    showStatus(planStatus, 'Could not save on this device. Check browser storage settings and try again.', true);
+    return false;
   }
 }
 
@@ -144,21 +154,11 @@ function renderCheckIns() {
     checkbox.type = 'checkbox';
     checkbox.checked = item.done;
     checkbox.setAttribute('aria-label', `Mark ${item.label} as ${item.done ? 'not done' : 'done'}`);
-    checkbox.addEventListener('change', async () => {
-      checkbox.disabled = true;
-      try {
-        const response = await apiRequest(`/api/check-ins/${encodeURIComponent(item.id)}`, {
-          method: 'PATCH',
-          body: { done: checkbox.checked }
-        });
-        plan.checkIns = plan.checkIns.map((checkIn) => checkIn.id === item.id ? response.checkIn : checkIn);
+    checkbox.addEventListener('change', () => {
+      item.done = checkbox.checked;
+      if (persistPlan()) {
         renderCheckIns();
-        showStatus(planStatus, 'Check-in saved to your account.');
-      } catch (error) {
-        console.error('Could not update the check-in:', error);
-        checkbox.checked = item.done;
-        checkbox.disabled = false;
-        showStatus(planStatus, error.message || 'Could not update the check-in. Try again.', true);
+        showStatus(planStatus, 'Check-in recorded on this device only.');
       }
     });
 
@@ -175,17 +175,11 @@ function renderCheckIns() {
     remove.className = 'remove-checkin';
     remove.textContent = 'Remove';
     remove.setAttribute('aria-label', `Remove check-in: ${item.label}`);
-    remove.addEventListener('click', async () => {
-      remove.disabled = true;
-      try {
-        await apiRequest(`/api/check-ins/${encodeURIComponent(item.id)}`, { method: 'DELETE' });
-        plan.checkIns = plan.checkIns.filter((checkIn) => checkIn.id !== item.id);
+    remove.addEventListener('click', () => {
+      plan.checkIns = plan.checkIns.filter((checkIn) => checkIn.id !== item.id);
+      if (persistPlan()) {
         renderCheckIns();
         showStatus(planStatus, 'Check-in removed.');
-      } catch (error) {
-        console.error('Could not remove the check-in:', error);
-        remove.disabled = false;
-        showStatus(planStatus, error.message || 'Could not remove the check-in. Try again.', true);
       }
     });
 
@@ -194,9 +188,9 @@ function renderCheckIns() {
   });
 }
 
-tripForm.addEventListener('submit', async (event) => {
+tripForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  if (!currentAccount || !tripForm.reportValidity()) return;
+  if (!tripForm.reportValidity()) return;
 
   const contactName = $('#contactName').value.trim();
   const contactPhone = $('#contactPhone').value.trim();
@@ -215,7 +209,8 @@ tripForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const updatedPlan = {
+  plan = {
+    ...plan,
     destination: $('#destination').value.trim(),
     departDate,
     returnDate,
@@ -223,24 +218,14 @@ tripForm.addEventListener('submit', async (event) => {
     contactPhone,
     itinerary: $('#itinerary').value.trim()
   };
-  const submit = tripForm.querySelector('button[type="submit"]');
-  submit.disabled = true;
-  try {
-    const response = await apiRequest('/api/plan', { method: 'PUT', body: updatedPlan });
-    plan = { ...response.plan, checkIns: plan.checkIns };
+  if (persistPlan()) {
     renderPlan();
-    showStatus(planStatus, 'Safety plan saved to your account.');
-  } catch (error) {
-    console.error('Could not save the safety plan:', error);
-    showStatus(planStatus, error.message || 'Could not save your safety plan. Try again.', true);
-  } finally {
-    submit.disabled = !currentAccount;
+    showStatus(planStatus, 'Safety plan saved on this device.');
   }
 });
 
-$('#checkinForm').addEventListener('submit', async (event) => {
+$('#checkinForm').addEventListener('submit', (event) => {
   event.preventDefault();
-  if (!currentAccount) return;
   const input = $('#checkinLabel');
   const label = input.value.trim();
   if (!label) {
@@ -248,21 +233,17 @@ $('#checkinForm').addEventListener('submit', async (event) => {
     return;
   }
   const time = $('#checkinTime').value;
-  const form = event.currentTarget;
-  const submit = form.querySelector('button[type="submit"]');
-  submit.disabled = true;
-  try {
-    const response = await apiRequest('/api/check-ins', { method: 'POST', body: { label, time } });
-    plan.checkIns.push(response.checkIn);
+  plan.checkIns.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    label,
+    time,
+    done: false
+  });
+  if (persistPlan()) {
     renderCheckIns();
-    form.reset();
+    event.currentTarget.reset();
     input.focus();
-    showStatus(planStatus, 'Check-in saved to your account.');
-  } catch (error) {
-    console.error('Could not add the check-in:', error);
-    showStatus(planStatus, error.message || 'Could not add the check-in. Try again.', true);
-  } finally {
-    submit.disabled = !currentAccount;
+    showStatus(planStatus, 'Check-in added and saved on this device.');
   }
 });
 
@@ -417,10 +398,40 @@ $('#findPolice').addEventListener('click', async (event) => {
 });
 
 window.addEventListener('safar-account-change', (event) => {
-  void applyAccountState(event.detail?.account || null);
+  const { account, created, firstAccount } = event.detail || {};
+  let migrationFailed = false;
+  if (account && created && firstAccount) {
+    try {
+      const legacyPlan = localStorage.getItem(ANONYMOUS_STORAGE_KEY);
+      if (legacyPlan) {
+        const parsedLegacyPlan = JSON.parse(legacyPlan);
+        if (!parsedLegacyPlan || typeof parsedLegacyPlan !== 'object' || Array.isArray(parsedLegacyPlan)) {
+          throw new Error('The saved trip plan has an invalid format.');
+        }
+        const accountPlanKey = planStorageKey(account);
+        if (!localStorage.getItem(accountPlanKey)) {
+          localStorage.setItem(accountPlanKey, legacyPlan);
+        }
+        localStorage.removeItem(ANONYMOUS_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Could not move the saved trip plan to the new account:', error);
+      migrationFailed = true;
+    }
+  }
+  const planLoaded = migrationFailed ? false : loadPlan();
+  renderPlan();
+  if (migrationFailed) {
+    showStatus(planStatus, 'Account created, but the previous trip data could not be moved. Check browser storage; the old entry was left unchanged.', true);
+    return;
+  }
+  if (!planLoaded) return;
+  if (account) {
+    showStatus(planStatus, created ? 'Account created. Your trip plan is now saved to this profile on this device.' : 'Signed in. Showing this profile’s saved trip plan.');
+  } else {
+    showStatus(planStatus, 'Signed out. Your account-specific trip plan is hidden on this page.');
+  }
 });
 
-setPlanFormsEnabled(false);
+loadPlan();
 renderPlan();
-showStatus(planStatus, 'Sign in or register to save a trip plan and check-ins.');
-accountReady.then(() => applyAccountState(getCurrentAccount()));

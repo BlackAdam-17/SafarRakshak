@@ -4,18 +4,7 @@
   "description": "Smart travel companion app",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "node --test"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "dependencies": {
-    "better-sqlite3": "^12.2.0",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.0.1",
-    "helmet": "^8.1.0"
+    "dev": "py -m http.server 8080"
   },
   "keywords": ["travel", "planner", "budget"],
   "author": "",

@@ -1,4 +1,4 @@
-import './account-ui.js?v=3';
+import './account-ui.js?v=4';
 
 const $ = (selector) => document.querySelector(selector);
 const button = $('#findPharmacies');
