@@ -91,7 +91,6 @@ async function geocodeWithNominatim(query) {
     format: 'jsonv2',
     limit: '1',
     addressdetails: '1',
-    countrycodes: 'in'
   }).toString();
   const response = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('Backup place search returned HTTP ' + response.status);
