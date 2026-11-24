@@ -39,3 +39,21 @@ SafarRakshak does not dispatch emergency alerts or guarantee station listing acc
 Open **Route Navigator** to enter a starting point and destination or use your current location. The page geocodes place names with OpenStreetMap Nominatim and requests driving route options from the public OSRM demo service. Route estimates and map data depend on third-party availability and may be incomplete.
 
 These are routing options, not safety scores. The application does not verify crime rates, lighting, traffic, road closures, or emergency response, and it must not be used as a guarantee that a route is safe. Location access is requested only after the user selects the location button. When current location is selected, its coordinates are sent to the geocoding/routing service only as needed for the route request.
+
+
+## React.js and Tailwind CSS
+
+The home page now includes a React-powered travel toolkit section styled with Tailwind CSS v4. Existing HTML/CSS/JavaScript trip planning, account, check-in, pharmacy and route navigator pages are retained during this gradual migration.
+
+### Install and run locally
+
+Install Node.js 22 or later, then run:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite. To create the production website build, run `npm run build`; the generated files are placed in `dist/`.
+
+React and Tailwind CSS are open-source dependencies. This migration deliberately keeps the established pages and browser-local data workflows intact while introducing React/Tailwind incrementally.

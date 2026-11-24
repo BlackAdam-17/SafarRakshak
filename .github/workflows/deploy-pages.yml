@@ -14,7 +14,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Build React and Tailwind application
+        run: npm run build
+      - name: Verify built website
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in index.html trip-area.html navigator.html; do
+            test -s "dist/$file" || { echo "::error::Missing dist/$file"; exit 1; }
+          done
+          touch dist/.nojekyll
+      - name: Upload website artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safarrakshak-site
+          path: dist
+          if-no-files-found: error
+
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -23,47 +52,13 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Validate and prepare static website
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          required_files=(
-            index.html
-            trip-area.html
-            app.js
-            account-ui.js
-            trip-area.js
-            navigator.html
-            navigator.js
-            styles.css
-          )
-
-          for file in "${required_files[@]}"; do
-            if [[ ! -s "$file" ]]; then
-              echo "::error::Required website file is missing or empty: $file"
-              exit 1
-            fi
-          done
-
-          mkdir -p _site
-          cp "${required_files[@]}" _site/
-          touch _site/.nojekyll
-
-          echo "Website files prepared:"
-          find _site -maxdepth 1 -type f -printf '%f\\n' | sort
-
+      - name: Download website artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: safarrakshak-site
+          path: dist
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-
-      - name: Upload website artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: _site
-
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
