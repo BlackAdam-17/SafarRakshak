@@ -40,12 +40,10 @@ jobs:
             test -s "dist/$file" || { echo "::error::Missing dist/$file"; exit 1; }
           done
           touch dist/.nojekyll
-      - name: Upload website artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: safarrakshak-site
           path: dist
-          if-no-files-found: error
 
   deploy:
     if: github.event_name != 'pull_request'
@@ -58,15 +56,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download website artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: safarrakshak-site
-          path: dist
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: safarrakshak-site
