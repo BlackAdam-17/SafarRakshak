@@ -1,9 +1,33 @@
 {
   "name": "safarrakshak",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
-  "dependencies": { "react": "^19.1.1", "react-dom": "^19.1.1" },
-  "devDependencies": { "@tailwindcss/vite": "^4.1.13", "@vitejs/plugin-react": "^4.7.0", "tailwindcss": "^4.1.13", "vite": "^6.4.1" }
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server:dev": "node --watch server/index.js",
+    "server:start": "node server/index.js",
+    "test:server": "node --test server/tests/*.test.js"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.1.13",
+    "vite": "^6.4.1"
+  }
 }

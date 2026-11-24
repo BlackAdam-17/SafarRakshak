@@ -57,3 +57,25 @@ npm run dev
 Open the local URL printed by Vite. To create the production website build, run `npm run build`; the generated files are placed in `dist/`.
 
 React and Tailwind CSS are open-source dependencies. This migration deliberately keeps the established pages and browser-local data workflows intact while introducing React/Tailwind incrementally.
+
+
+## React migration and backend foundation
+
+The Trip Area and Route Navigator layouts are rendered by React components. Their existing DOM IDs are retained so the location-search, map, and route scripts continue to work during migration. The homepage journey planner and check-in workflow remain compatible with the existing scripts.
+
+### Node.js API (Express + MongoDB)
+
+The API foundation in `server/` provides registration and login with bcrypt password hashing and short-lived JWTs, authenticated trip-plan read/create/update/delete endpoints, MongoDB user/trip/check-in models, request validation, security headers, CORS allow-list, JSON size limits, API rate limiting, and `/api/health`.
+
+Local setup:
+
+```bash
+npm install
+cp .env.example .env
+# Configure MONGODB_URI and a unique JWT_SECRET of at least 32 characters.
+npm run server:dev
+```
+
+Run the frontend in a second terminal with `npm run dev`. The API listens on port 4000 by default.
+
+**Deployment note:** GitHub Pages hosts the static frontend only; it cannot run this Node.js API. Deploy the API to a Node-compatible hosting service and provision MongoDB. Set `MONGODB_URI`, `JWT_SECRET`, and `CLIENT_ORIGIN` as private environment variables on the API host. Never commit real credentials. Existing browser-local account and trip workflows have not yet been connected to the API, and local data is not automatically migrated to MongoDB.

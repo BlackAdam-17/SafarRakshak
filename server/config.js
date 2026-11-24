@@ -1,0 +1,3 @@
+import 'dotenv/config';
+export const config={port:Number(process.env.PORT||4000),mongoUri:process.env.MONGODB_URI||'',jwtSecret:process.env.JWT_SECRET||'',clientOrigin:process.env.CLIENT_ORIGIN||'http://localhost:5173'};
+export function validateConfig(){if(!config.mongoUri)throw new Error('MONGODB_URI is required. Configure your .env file.');if(config.jwtSecret.length<32)throw new Error('JWT_SECRET must contain at least 32 characters.');}

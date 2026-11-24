@@ -1,0 +1,13 @@
+import {Router} from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import {z} from 'zod';
+import {User} from '../models/User.js';
+import {config} from '../config.js';
+const router=Router();
+const registerSchema=z.object({fullName:z.string().trim().min(2).max(80),email:z.email().max(254),password:z.string().min(8).max(128)});
+const loginSchema=z.object({email:z.email().max(254),password:z.string().min(8).max(128)});
+const tokenFor=id=>jwt.sign({},config.jwtSecret,{subject:String(id),expiresIn:'1h',issuer:'safarrakshak-api',audience:'safarrakshak-client'});
+router.post('/register',async(req,res,next)=>{try{const parsed=registerSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'Enter a valid name, email address and password of at least 8 characters.'});const {fullName,email,password}=parsed.data;const normalized=email.toLowerCase();if(await User.exists({email:normalized}))return res.status(409).json({error:'An account with this email already exists.'});const user=await User.create({fullName,email:normalized,passwordHash:await bcrypt.hash(password,12)});return res.status(201).json({token:tokenFor(user._id),user:{id:user.id,fullName:user.fullName,email:user.email}});}catch(error){return next(error);}});
+router.post('/login',async(req,res,next)=>{try{const parsed=loginSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'Enter a valid email address and password.'});const user=await User.findOne({email:parsed.data.email.toLowerCase()}).select('+passwordHash');if(!user||!(await bcrypt.compare(parsed.data.password,user.passwordHash)))return res.status(401).json({error:'Email or password is incorrect.'});return res.json({token:tokenFor(user._id),user:{id:user.id,fullName:user.fullName,email:user.email}});}catch(error){return next(error);}});
+export default router;

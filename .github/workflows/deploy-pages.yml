@@ -30,6 +30,8 @@ jobs:
         run: npm install
       - name: Build React and Tailwind application
         run: npm run build
+      - name: Run backend API smoke tests
+        run: npm run test:server
       - name: Verify built website
         shell: bash
         run: |
