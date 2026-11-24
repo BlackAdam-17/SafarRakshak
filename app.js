@@ -1,392 +1,388 @@
-const STORAGE_KEYS = { savedPlan: 'safar-rakshak.saved-plan.v1', packed: 'safar-rakshak.packing.v1', contact: 'safar-rakshak.contact.v1', budgetShares: 'safar-rakshak.budget-shares.v1' };
+const STORAGE_KEY = 'safar-rakshak.safety-plan.v2';
 const $ = (selector) => document.querySelector(selector);
+const tripForm = $('#tripForm');
+const stationStatus = $('#stationStatus');
+const stationList = $('#stationList');
+const planStatus = $('#planStatus');
 
-const form = $('#tripForm');
-const destinationInput = $('#destination');
-const daysInput = $('#days');
-const budgetInput = $('#budget');
-const styleInput = $('#style');
-const destinationGrid = $('#destinationGrid');
-const statusMessage = $('#statusMessage');
-let activePlan = null;
-let messageTimer;
-
-const destinations = [
-  { name: 'Manali', description: 'Pine forests, mountain air, and lively cafés.', colors: ['#bdd9c7', '#66927a'], bestTime: 'Start early', activities: ['Take a gentle walk through the old town', 'Explore a nearby nature trail', 'Try a local café and regional food', 'Find a quiet viewpoint before sunset'] },
-  { name: 'Goa', description: 'Laid-back beaches, Portuguese lanes, and sunsets.', colors: ['#f5d7a0', '#dd9866'], bestTime: 'Late afternoon', activities: ['Explore a heritage lane at an easy pace', 'Spend time by the coast', 'Try a local seafood or vegetarian dish', 'Watch the sky change at sunset'] },
-  { name: 'Jaipur', description: 'Pink city streets, craft, and royal history.', colors: ['#f4c8a7', '#c77965'], bestTime: 'Morning', activities: ['Visit a historic site early', 'Browse a local craft market', 'Take a break for Rajasthani food', 'Walk through the old city before dusk'] },
-  { name: 'Rishikesh', description: 'River walks, foothill views, and a slower pace.', colors: ['#b8d8d1', '#599184'], bestTime: 'Early morning', activities: ['Walk along the riverfront', 'Explore a nearby hillside path', 'Take a quiet café break', 'Catch the evening riverfront atmosphere'] }
-];
-
-const styles = {
-  adventure: { label: 'Adventure', tag: 'Active escape', highlights: ['A varied pace with room for outdoor exploration.', 'Local food and viewpoint ideas add variety to the day.', 'A little preparation helps keep plans flexible.'], packing: ['Comfortable walking shoes', 'Reusable water bottle', 'Day backpack', 'Power bank', 'Light rain layer', 'Sun protection'], safety: ['Check local weather and trail conditions before setting out.', 'Tell someone your route and expected return time.', 'Carry water and turn back if conditions change.'] },
-  family: { label: 'Family', tag: 'Easy-going escape', highlights: ['A gentler pace leaves room for meals and rest.', 'A mix of simple activities keeps the days flexible.', 'Breaks can be adjusted to suit your group.'], packing: ['Comfortable clothes', 'Snacks and water', 'First-aid pouch', 'Sun protection', 'Any regular medicines', 'Copies of important details'], safety: ['Agree on a meeting point in busy places.', 'Plan regular rest, water, and meal breaks.', 'Keep essential medicines and caregiver contacts accessible.'] },
-  solo: { label: 'Solo', tag: 'Independent escape', highlights: ['Flexible activities make it easy to change plans.', 'Time for neighborhood walks and local discovery.', 'A shared itinerary helps someone know your plans.'], packing: ['Portable charger', 'Photo ID and a backup copy', 'Reusable water bottle', 'Small first-aid kit', 'Safety whistle', 'Day bag'], safety: ['Share your itinerary and stay details with someone you trust.', 'Choose well-lit, populated routes after dark.', 'Keep your phone charged and local contacts saved.'] },
-  luxury: { label: 'Comfort & luxury', tag: 'Comfort-first escape', highlights: ['A slower pace leaves time to unwind.', 'Plan key experiences ahead to protect your time.', 'Keep a little flexibility between bookings.'], packing: ['Booking confirmations', 'Comfortable outfits', 'Personal toiletries', 'Charging cable', 'Any regular medicines', 'A small day bag'], safety: ['Confirm reservations and transport before departure.', 'Use trusted transport and keep a backup option.', 'Store payment cards and valuables securely.'] }
+let plan = {
+  destination: '',
+  departDate: '',
+  returnDate: '',
+  contactName: '',
+  contactPhone: '',
+  itinerary: '',
+  checkIns: []
 };
 
-const budgetCategories = [
-  { name: 'Stay', share: 35, color: 'bg-forest-700' },
-  { name: 'Food', share: 20, color: 'bg-amber-500' },
-  { name: 'Transport', share: 25, color: 'bg-sky-600' },
-  { name: 'Activities', share: 15, color: 'bg-violet-500' },
-  { name: 'Flex buffer', share: 5, color: 'bg-slate-400' }
-];
-let budgetShares = readStorage(STORAGE_KEYS.budgetShares) || Object.fromEntries(budgetCategories.map((item) => [item.name, item.share]));
+function showStatus(element, message, isError = false) {
+  element.textContent = message;
+  element.classList.toggle('error', isError);
+}
 
-function readStorage(key, fallback = null) {
+function loadPlan() {
   try {
-    const value = localStorage.getItem(key);
-    return value ? (JSON.parse(value) ?? fallback) : fallback;
-  } catch {
-    return fallback;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    const value = JSON.parse(stored);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error('Saved safety plan has an invalid format.');
+    }
+
+    plan = {
+      ...plan,
+      destination: typeof value.destination === 'string' ? value.destination : '',
+      departDate: typeof value.departDate === 'string' ? value.departDate : '',
+      returnDate: typeof value.returnDate === 'string' ? value.returnDate : '',
+      contactName: typeof value.contactName === 'string' ? value.contactName : '',
+      contactPhone: typeof value.contactPhone === 'string' ? value.contactPhone : '',
+      itinerary: typeof value.itinerary === 'string' ? value.itinerary : '',
+      checkIns: Array.isArray(value.checkIns)
+        ? value.checkIns.filter((item) => item && typeof item.id === 'string' && typeof item.label === 'string')
+          .map((item) => ({
+            id: item.id,
+            label: item.label,
+            time: typeof item.time === 'string' ? item.time : '',
+            done: item.done === true
+          }))
+        : []
+    };
+  } catch (error) {
+    console.error('Could not load the saved safety plan:', error);
+    showStatus(planStatus, 'Could not load saved trip details. Check browser storage settings.', true);
   }
 }
 
-function writeStorage(key, value) {
+function persistPlan() {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
     return true;
-  } catch {
-    showMessage('Browser storage is unavailable. Your plan is still open for this session.', true);
+  } catch (error) {
+    console.error('Could not save the safety plan:', error);
+    showStatus(planStatus, 'Could not save on this device. Check browser storage settings and try again.', true);
     return false;
   }
 }
 
-function showMessage(message, isError = false) {
-  statusMessage.textContent = message;
-  statusMessage.className = `min-h-5 text-sm font-semibold ${isError ? 'text-rose-700' : 'text-forest-700'}`;
-  clearTimeout(messageTimer);
-  messageTimer = setTimeout(() => { statusMessage.textContent = ''; }, 4200);
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function money(amount) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-}
+function renderPlan() {
+  $('#destination').value = plan.destination;
+  $('#departDate').value = plan.departDate;
+  $('#returnDate').value = plan.returnDate;
+  $('#contactName').value = plan.contactName;
+  $('#contactPhone').value = plan.contactPhone;
+  $('#itinerary').value = plan.itinerary;
 
-function getTripFromForm() {
-  const destination = destinationInput.value.trim();
-  const days = Number(daysInput.value);
-  const budget = Number(budgetInput.value);
-  if (!destination || destination.length > 60 || !Number.isInteger(days) || days < 1 || days > 30 || !Number.isFinite(budget) || budget < 500 || budget > 10000000) return null;
-  const place = destinations.find((item) => item.name.toLowerCase() === destination.toLowerCase());
-  const styleKey = styles[styleInput.value] ? styleInput.value : 'adventure';
-  const style = styles[styleKey];
-  const activities = place?.activities ?? [
-    `Explore a well-known local landmark in ${destination}`,
-    `Take a relaxed neighborhood walk in ${destination}`,
-    `Try a local meal and discover the regional food scene`,
-    `Set aside time for an unhurried afternoon in ${destination}`
-  ];
-  const itinerary = Array.from({ length: days }, (_, index) => ({ day: index + 1, activity: activities[index % activities.length] }));
-  const daily = Math.round(budget / days);
-  const budgetFit = Math.max(40, Math.min(99, Math.round(55 + (daily / 1800) * 27)));
-  return { destination: place?.name ?? destination, days, budget, daily, styleKey, style: style.label, tag: style.tag, bestTime: place?.bestTime ?? 'Choose a local daylight start', itinerary, packing: style.packing, safety: style.safety, budgetFit };
-}
-
-function createListItem(text, className = 'text-sm leading-6 text-slate-700') {
-  const li = document.createElement('li');
-  li.className = className;
-  li.textContent = text;
-  return li;
-}
-
-function renderDestinations() {
-  const options = $('#destinationOptions');
-  destinations.forEach((place) => {
-    const option = document.createElement('option');
-    option.value = place.name;
-    options.append(option);
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'group overflow-hidden rounded-3xl border border-forest-900/5 bg-white text-left shadow-soft transition hover:-translate-y-1 hover:shadow-lg';
-    const art = document.createElement('span');
-    art.className = 'destination-art relative block h-28 overflow-hidden sm:h-36';
-    art.style.setProperty('--from', place.colors[0]);
-    art.style.setProperty('--to', place.colors[1]);
-    const icon = document.createElement('span');
-    icon.className = 'absolute bottom-2 right-4 text-5xl drop-shadow-sm transition group-hover:-translate-y-1';
-    icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = ({ Manali: '🏔️', Goa: '🌊', Jaipur: '🏰', Rishikesh: '🌿' })[place.name];
-    art.append(icon);
-    const copy = document.createElement('span');
-    copy.className = 'block p-4';
-    const title = document.createElement('span');
-    title.className = 'block font-extrabold text-forest-900';
-    title.textContent = place.name;
-    const description = document.createElement('span');
-    description.className = 'mt-1 block text-xs leading-5 text-slate-500';
-    description.textContent = place.description;
-    copy.append(title, description);
-    card.append(art, copy);
-    card.addEventListener('click', () => {
-      destinationInput.value = place.name;
-      destinationInput.focus({ preventScroll: true });
-      showMessage(`${place.name} selected. Set your trip details, then create your journey.`);
-      $('#planner').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    destinationGrid.append(card);
-  });
-}
-
-function getPackedItems(plan) {
-  const all = readStorage(STORAGE_KEYS.packed, {});
-  return new Set(all[planKey(plan)] ?? []);
-}
-
-function planKey(plan) {
-  return `${plan.destination.toLowerCase()}|${plan.days}|${plan.styleKey}`;
-}
-
-function savePackedItems(plan, packed) {
-  const all = readStorage(STORAGE_KEYS.packed, {});
-  all[planKey(plan)] = [...packed];
-  writeStorage(STORAGE_KEYS.packed, all);
-}
-
-function renderPacking(plan) {
-  const list = $('#packingList');
-  const packed = getPackedItems(plan);
-  list.replaceChildren();
-  plan.packing.forEach((item) => {
-    const li = document.createElement('li');
-    const label = document.createElement('label');
-    label.className = 'check-row flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 text-sm';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'h-4 w-4 shrink-0 accent-forest-700';
-    checkbox.checked = packed.has(item);
-    checkbox.setAttribute('aria-label', `Packed: ${item}`);
-    const text = document.createElement('span');
-    text.className = 'check-text text-slate-700';
-    text.textContent = item;
-    checkbox.addEventListener('change', () => {
-      if (checkbox.checked) packed.add(item); else packed.delete(item);
-      savePackedItems(plan, packed);
-      updatePackingProgress(plan, packed.size);
-    });
-    label.append(checkbox, text);
-    li.append(label);
-    list.append(li);
-  });
-  updatePackingProgress(plan, packed.size);
-}
-
-function updatePackingProgress(plan, count) {
-  $('#packingProgress').textContent = `${count}/${plan.packing.length} packed`;
-}
-
-function renderBudget(plan) {
-  const breakdown = $('#budgetBreakdown');
-  breakdown.replaceChildren();
-  let totalShare = 0;
-  budgetCategories.forEach((category) => {
-    const share = Number.isFinite(Number(budgetShares[category.name])) ? Math.max(0, Math.min(100, Number(budgetShares[category.name]))) : category.share;
-    totalShare += share;
-    const row = document.createElement('div');
-    const header = document.createElement('div');
-    header.className = 'mb-1.5 flex items-center justify-between gap-2 text-sm';
-    const name = document.createElement('span');
-    name.className = 'font-semibold text-slate-700';
-    name.textContent = category.name;
-    const right = document.createElement('span');
-    right.className = 'flex items-center gap-2';
-    const input = document.createElement('input');
-    input.className = 'w-14 rounded-md border border-slate-200 px-1.5 py-1 text-right text-xs font-bold text-slate-700';
-    input.type = 'number';
-    input.min = '0';
-    input.max = '100';
-    input.step = '1';
-    input.value = String(share);
-    input.setAttribute('aria-label', `${category.name} budget share percentage`);
-    const percent = document.createElement('span');
-    percent.textContent = '%';
-    const amount = document.createElement('span');
-    amount.className = 'min-w-20 text-right font-extrabold text-forest-900';
-    amount.textContent = money(Math.round((plan.budget * share) / 100));
-    right.append(input, percent, amount);
-    header.append(name, right);
-    const track = document.createElement('div');
-    track.className = 'h-2 overflow-hidden rounded-full bg-slate-100';
-    const bar = document.createElement('div');
-    bar.className = `h-full rounded-full ${category.color}`;
-    bar.style.width = `${share}%`;
-    track.append(bar);
-    row.append(header, track);
-    breakdown.append(row);
-    input.addEventListener('input', () => {
-      budgetShares[category.name] = Math.max(0, Math.min(100, Number(input.value) || 0));
-      amount.textContent = money(Math.round((plan.budget * budgetShares[category.name]) / 100));
-      bar.style.width = `${budgetShares[category.name]}%`;
-      totalShare = budgetCategories.reduce((sum, item) => sum + (Number(budgetShares[item.name]) || 0), 0);
-      updateBudgetNote(plan, totalShare);
-      writeStorage(STORAGE_KEYS.budgetShares, budgetShares);
-    });
-  });
-  updateBudgetNote(plan, totalShare);
-}
-
-function updateBudgetNote(plan, totalShare) {
-  const note = $('#budgetNote');
-  const difference = Math.round(totalShare - 100);
-  const status = difference === 0 ? 'Your allocations add up to 100%.' : difference > 0 ? `Your allocations are ${difference}% over the budget.` : `${Math.abs(difference)}% remains unallocated.`;
-  note.textContent = `Daily target: ${money(plan.daily)} · ${status} Planning split only, not a destination price estimate.`;
-  note.className = `mt-5 rounded-xl p-3 text-sm leading-5 ${difference === 0 ? 'bg-amber-50 text-amber-900' : 'bg-rose-50 text-rose-800'}`;
-}
-
-function renderPlan(plan) {
-  activePlan = plan;
-  $('#tripMood').textContent = plan.style;
-  $('#dailyBudget').textContent = money(plan.daily);
-  $('#bestTime').textContent = plan.bestTime;
-  $('#travelScore').textContent = `${plan.budgetFit}/100`;
-  $('#routeTag').textContent = plan.tag;
-  $('#planDestination').textContent = `to ${plan.destination}`;
-  $('#planMeta').textContent = `${plan.days} ${plan.days === 1 ? 'day' : 'days'} · ${plan.style} · total budget ${money(plan.budget)}`;
-  const itinerary = $('#itineraryList');
-  itinerary.replaceChildren();
-  plan.itinerary.forEach((item) => {
-    const li = document.createElement('li');
-    li.className = 'flex gap-3 rounded-2xl bg-slate-50 p-3.5';
-    const day = document.createElement('span');
-    day.className = 'grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-forest-100 text-xs font-extrabold text-forest-800';
-    day.textContent = String(item.day).padStart(2, '0');
-    const copy = document.createElement('span');
-    copy.className = 'self-center text-sm leading-6 text-slate-700';
-    copy.textContent = item.activity;
-    li.append(day, copy);
-    itinerary.append(li);
-  });
-  const safety = $('#safetyList');
-  safety.replaceChildren(...plan.safety.map((item) => {
-    const li = document.createElement('li');
-    li.className = 'flex gap-3 text-sm leading-6 text-slate-700';
-    const mark = document.createElement('span');
-    mark.className = 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-forest-100 text-xs font-extrabold text-forest-700';
-    mark.textContent = '✓';
-    li.append(mark, document.createTextNode(item));
-    return li;
-  }));
-  $('#highlightsList').replaceChildren(...styles[plan.styleKey].highlights.map((item) => {
-    const li = document.createElement('li');
-    li.className = 'flex gap-3 text-sm leading-6 text-slate-700';
-    const mark = document.createElement('span');
-    mark.className = 'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-forest-100 text-xs font-extrabold text-forest-700';
-    mark.textContent = '✦';
-    li.append(mark, document.createTextNode(item));
-    return li;
-  }));
-  renderBudget(plan);
-  renderPacking(plan);
-}
-
-function serializePlan(plan) {
-  return [
-    `Safar Rakshak trip plan: ${plan.destination}`,
-    `${plan.days} days · ${plan.style} · Total budget: ${money(plan.budget)} · Daily target: ${money(plan.daily)}`,
-    '', 'ITINERARY', ...plan.itinerary.map((item) => `Day ${item.day}: ${item.activity}`),
-    '', 'BUDGET SPLIT', ...budgetCategories.map((item) => `${item.name} (${Number(budgetShares[item.name]) || 0}%): ${money(Math.round(plan.budget * (Number(budgetShares[item.name]) || 0) / 100))}`),
-    '', 'PACKING CHECKLIST', ...plan.packing.map((item) => `${getPackedItems(plan).has(item) ? '[x]' : '[ ]'} ${item}`),
-    '', 'SAFETY REMINDERS', ...plan.safety.map((item) => `• ${item}`),
-    '', 'Planning guide only. Confirm current local travel details before departure.'
-  ].join('\n');
-}
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!form.reportValidity()) return;
-  const plan = getTripFromForm();
-  if (!plan) return;
-  renderPlan(plan);
-  showMessage('Your trip plan is ready. You can save, share, or download it below.');
-  $('#your-plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
-
-$('#savePlan').addEventListener('click', () => {
-  if (!activePlan) return;
-  if (writeStorage(STORAGE_KEYS.savedPlan, activePlan) && writeStorage(STORAGE_KEYS.budgetShares, budgetShares)) showMessage('Plan and budget split saved on this device.');
-});
-
-$('#resetBudget').addEventListener('click', () => {
-  budgetShares = Object.fromEntries(budgetCategories.map((item) => [item.name, item.share]));
-  writeStorage(STORAGE_KEYS.budgetShares, budgetShares);
-  if (activePlan) renderBudget(activePlan);
-  showMessage('Budget split reset to the suggested allocation.');
-});
-
-$('#sharePlan').addEventListener('click', async () => {
-  if (!activePlan) return;
-  const text = serializePlan(activePlan);
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: `Safar Rakshak · ${activePlan.destination}`, text });
-    } else if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      showMessage('Trip plan copied to clipboard.');
-    } else {
-      showMessage('Sharing is not available in this browser. Download your plan instead.', true);
-    }
-  } catch (error) {
-    if (error?.name !== 'AbortError') showMessage('Could not share this plan. Try downloading it instead.', true);
+  const meta = $('#planMeta');
+  meta.replaceChildren();
+  if (plan.destination) {
+    const destination = document.createElement('span');
+    destination.className = 'meta-chip';
+    destination.textContent = plan.destination;
+    meta.append(destination);
   }
-});
+  if (plan.departDate || plan.returnDate) {
+    const dates = document.createElement('span');
+    dates.className = 'meta-chip';
+    dates.textContent = [formatDate(plan.departDate), formatDate(plan.returnDate)].filter(Boolean).join(' – ');
+    meta.append(dates);
+  }
 
-$('#downloadPlan').addEventListener('click', () => {
-  if (!activePlan) return;
-  const file = new Blob([serializePlan(activePlan)], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(file);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `safar-rakshak-${activePlan.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-plan.txt`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showMessage('Your trip plan has been downloaded.');
-});
-
-function renderSavedContact(contact) {
-  const display = $('#savedContact');
-  display.replaceChildren();
-  if (!contact?.name || !contact?.phone) return;
-  display.append(document.createTextNode(`Saved on this device: ${contact.name} · `));
-  const call = document.createElement('a');
-  call.className = 'font-bold text-forest-700 underline';
-  call.href = `tel:${contact.phone.replace(/[^+0-9]/g, '')}`;
-  call.textContent = contact.phone;
-  display.append(call);
+  const preview = $('#contactPreview');
+  preview.replaceChildren();
+  if (plan.contactName && plan.contactPhone) {
+    preview.append(document.createTextNode(`Trusted contact: ${plan.contactName} · `));
+    const callLink = document.createElement('a');
+    callLink.href = `tel:${plan.contactPhone.replace(/[^\d+]/g, '')}`;
+    callLink.textContent = plan.contactPhone;
+    preview.append(callLink);
+  } else {
+    preview.textContent = 'Add a trusted contact above so their details are easy to find during your trip.';
+  }
+  renderCheckIns();
 }
 
-$('#contactForm').addEventListener('submit', (event) => {
-  event.preventDefault();
-  const name = $('#contactName').value.trim();
-  const phone = $('#contactPhone').value.trim();
-  if (!name || !/^[+()0-9\s.-]{7,24}$/.test(phone)) {
-    showMessage('Enter a contact name and a valid phone number.', true);
+function formatCheckInTime(value) {
+  if (!value) return 'No time set';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Time not recognized' : date.toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+}
+
+function renderCheckIns() {
+  const list = $('#checkinList');
+  list.replaceChildren();
+  const completed = plan.checkIns.filter((item) => item.done).length;
+  $('#checkinCount').textContent = `${completed}/${plan.checkIns.length} complete`;
+
+  if (!plan.checkIns.length) {
+    const empty = document.createElement('li');
+    empty.className = 'empty-state';
+    empty.textContent = 'No check-ins yet. Add one above to create a reminder for your trip.';
+    list.append(empty);
     return;
   }
-  const contact = { name, phone };
-  if (writeStorage(STORAGE_KEYS.contact, contact)) {
-    renderSavedContact(contact);
-    showMessage('Trusted contact saved on this device.');
+
+  plan.checkIns.forEach((item) => {
+    const row = document.createElement('li');
+    row.className = `checkin-item${item.done ? ' is-done' : ''}`;
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = item.done;
+    checkbox.setAttribute('aria-label', `Mark ${item.label} as ${item.done ? 'not done' : 'done'}`);
+    checkbox.addEventListener('change', () => {
+      item.done = checkbox.checked;
+      if (persistPlan()) {
+        renderCheckIns();
+        showStatus(planStatus, 'Check-in recorded on this device only.');
+      }
+    });
+
+    const copy = document.createElement('span');
+    copy.className = 'checkin-copy';
+    const label = document.createElement('strong');
+    label.textContent = item.label;
+    const time = document.createElement('span');
+    time.textContent = formatCheckInTime(item.time);
+    copy.append(label, time);
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'remove-checkin';
+    remove.textContent = 'Remove';
+    remove.setAttribute('aria-label', `Remove check-in: ${item.label}`);
+    remove.addEventListener('click', () => {
+      plan.checkIns = plan.checkIns.filter((checkIn) => checkIn.id !== item.id);
+      if (persistPlan()) {
+        renderCheckIns();
+        showStatus(planStatus, 'Check-in removed.');
+      }
+    });
+
+    row.append(checkbox, copy, remove);
+    list.append(row);
+  });
+}
+
+tripForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (!tripForm.reportValidity()) return;
+
+  const contactName = $('#contactName').value.trim();
+  const contactPhone = $('#contactPhone').value.trim();
+  if (Boolean(contactName) !== Boolean(contactPhone)) {
+    showStatus(planStatus, 'Enter both trusted contact fields, or leave both blank.', true);
+    return;
+  }
+  if (contactPhone && !/^[+()0-9\s.-]{7,24}$/.test(contactPhone)) {
+    showStatus(planStatus, 'Enter a valid phone number for your trusted contact.', true);
+    return;
+  }
+  const departDate = $('#departDate').value;
+  const returnDate = $('#returnDate').value;
+  if (departDate && returnDate && returnDate < departDate) {
+    showStatus(planStatus, 'Return date must be the same as or later than your departure date.', true);
+    return;
+  }
+
+  plan = {
+    ...plan,
+    destination: $('#destination').value.trim(),
+    departDate,
+    returnDate,
+    contactName,
+    contactPhone,
+    itinerary: $('#itinerary').value.trim()
+  };
+  if (persistPlan()) {
+    renderPlan();
+    showStatus(planStatus, 'Safety plan saved on this device.');
   }
 });
 
-renderDestinations();
-const savedContact = readStorage(STORAGE_KEYS.contact);
-if (savedContact) {
-  $('#contactName').value = savedContact.name ?? '';
-  $('#contactPhone').value = savedContact.phone ?? '';
-  renderSavedContact(savedContact);
+$('#checkinForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const input = $('#checkinLabel');
+  const label = input.value.trim();
+  if (!label) {
+    input.focus();
+    return;
+  }
+  const time = $('#checkinTime').value;
+  plan.checkIns.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    label,
+    time,
+    done: false
+  });
+  if (persistPlan()) {
+    renderCheckIns();
+    event.currentTarget.reset();
+    input.focus();
+    showStatus(planStatus, 'Check-in added and saved on this device.');
+  }
+});
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Location is not available in this browser.'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 60000
+    });
+  });
 }
-const savedPlan = readStorage(STORAGE_KEYS.savedPlan);
-if (savedPlan && savedPlan.destination && savedPlan.days && savedPlan.packing && savedPlan.itinerary) {
-  destinationInput.value = savedPlan.destination;
-  daysInput.value = savedPlan.days;
-  budgetInput.value = savedPlan.budget;
-  styleInput.value = savedPlan.styleKey;
-  renderPlan(savedPlan);
-  showMessage('Welcome back. Your saved trip plan has been restored.');
-} else {
-  renderPlan(getTripFromForm());
+
+function distanceInKm(lat1, lon1, lat2, lon2) {
+  const radians = (degrees) => degrees * Math.PI / 180;
+  const latDelta = radians(lat2 - lat1);
+  const lonDelta = radians(lon2 - lon1);
+  const a = Math.sin(latDelta / 2) ** 2
+    + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(lonDelta / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+function appendMapSearch(latitude, longitude) {
+  const link = document.createElement('a');
+  link.className = 'button button-outline button-small';
+  link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`police station near ${latitude},${longitude}`)}`;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = 'Search police stations on map';
+  stationList.append(link);
+}
+
+function renderStations(elements, latitude, longitude) {
+  stationList.replaceChildren();
+  const stations = elements.map((element) => {
+    const lat = Number(element.lat ?? element.center?.lat);
+    const lon = Number(element.lon ?? element.center?.lon);
+    return {
+      tags: element.tags || {},
+      lat,
+      lon,
+      distance: distanceInKm(latitude, longitude, lat, lon)
+    };
+  }).filter((station) => Number.isFinite(station.lat) && Number.isFinite(station.lon))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
+
+  if (!stations.length) {
+    showStatus(stationStatus, 'No police station listings were found within 15 km. Check the map search below or contact local emergency services.', true);
+    appendMapSearch(latitude, longitude);
+    return;
+  }
+
+  showStatus(stationStatus, `Closest public listings · within 15 km · OpenStreetMap`);
+  stations.forEach((station) => {
+    const name = station.tags.name || station.tags['name:en'] || 'Police station';
+    const address = [
+      station.tags['addr:street'],
+      station.tags['addr:suburb'] || station.tags['addr:city']
+    ].filter(Boolean).join(', ');
+    const row = document.createElement('article');
+    row.className = 'station-item';
+
+    const details = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = name;
+    details.append(title);
+    if (address) {
+      const location = document.createElement('span');
+      location.textContent = address;
+      details.append(location);
+    }
+    const distance = document.createElement('span');
+    distance.className = 'station-distance';
+    distance.textContent = `${station.distance < 10 ? station.distance.toFixed(1) : Math.round(station.distance)} km`;
+
+    const links = document.createElement('div');
+    links.className = 'station-links';
+    const directions = document.createElement('a');
+    directions.href = `https://www.google.com/maps/dir/?api=1&destination=${station.lat},${station.lon}`;
+    directions.target = '_blank';
+    directions.rel = 'noopener noreferrer';
+    directions.textContent = 'Directions';
+    links.append(directions);
+    const phone = station.tags.phone || station.tags['contact:phone'];
+    if (phone) {
+      const call = document.createElement('a');
+      call.href = `tel:${phone.replace(/[^\d+]/g, '')}`;
+      call.textContent = `Call ${phone}`;
+      links.append(call);
+    }
+    row.append(details, distance, links);
+    stationList.append(row);
+  });
+}
+
+$('#findPolice').addEventListener('click', async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  button.textContent = 'Finding stations…';
+  stationList.replaceChildren();
+  showStatus(stationStatus, 'Requesting your location. Your coordinates will be used to search public map listings.');
+  let position;
+  try {
+    position = await getPosition();
+  } catch (error) {
+    console.error('Could not get the device location:', error);
+    const messages = {
+      1: 'Location permission was denied. Allow location access in your browser settings, or call local emergency services.',
+      2: 'Your location could not be determined. Try again outside or use your map app to search nearby.',
+      3: 'Location request timed out. Try again, or call local emergency services.'
+    };
+    const message = messages[error.code] || error.message || 'Could not access your location. Try again or use your map app.';
+    showStatus(stationStatus, message, true);
+    button.disabled = false;
+    button.textContent = 'Find nearby police';
+    return;
+  }
+
+  const { latitude, longitude } = position.coords;
+  const query = `[out:json][timeout:20];(nwr(around:15000,${latitude},${longitude})[amenity=police];nwr(around:15000,${latitude},${longitude})[police=station];);out center tags;`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
+
+  try {
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`The public map service responded with ${response.status}.`);
+    }
+    const data = await response.json();
+    if (!Array.isArray(data.elements)) {
+      throw new Error('The public map service returned an unexpected response.');
+    }
+    renderStations(data.elements, latitude, longitude);
+  } catch (error) {
+    console.error('Could not search public police station listings:', error);
+    const message = error.name === 'AbortError'
+      ? 'The nearby station search timed out. You can try the map search below.'
+      : 'Could not load nearby station listings. You can try the map search below.';
+    showStatus(stationStatus, message, true);
+    appendMapSearch(latitude, longitude);
+  } finally {
+    clearTimeout(timeout);
+    button.disabled = false;
+    button.textContent = 'Find nearby police';
+  }
+});
+
+loadPlan();
+renderPlan();

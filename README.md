@@ -1,21 +1,14 @@
-# Safar Rakshak 1.0
+# SafarRakshak
 
-A lightweight, browser-based travel planning companion.
+A browser-based travel safety companion for planning a trip, keeping trusted contact details close, and recording personal check-ins.
 
 ## Features
 
-- Trip planning for a custom destination or a suggested getaway
-- Day-by-day starter itinerary and travel-style suggestions
-- Daily budget target and editable budget allocation guide
-- Adventure, family, solo, and comfort-first travel styles
-- Packing checklist with progress saved on this device
-- Save and restore a trip plan using browser storage
-- Share a plan with the device share menu or copy it to the clipboard
-- Download a plain-text trip plan
-- Save one trusted travel contact locally for quick access
+- Save a destination, travel dates, itinerary notes, and trusted contact on this device
+- Add, schedule, complete, and remove personal check-ins
+- Find public police station listings near your current location and open directions
+- Call India's emergency number, 112, from a compatible device
 - Responsive layout, keyboard focus styles, and reduced-motion support
-
-Trip ideas and budget allocations are planning aids. Confirm prices, bookings, opening times, weather, transport, and safety information with current local sources.
 
 ## Run locally
 
@@ -27,4 +20,6 @@ py -m http.server 8080
 
 Then visit <http://localhost:8080>.
 
-The page uses Tailwind CSS's browser CDN, so an internet connection is needed to load the Tailwind utilities and web fonts. App plans and the saved contact remain in the browser's local storage.
+The app's trip details and check-ins are stored in the browser's local storage. Nearby station search requests location only after you press **Find nearby police**. The coordinates are sent to the public OpenStreetMap Overpass service to search nearby listings; no alert is sent to police. An internet connection is required for this search and for map directions.
+
+SafarRakshak does not dispatch emergency alerts or guarantee station listing accuracy or availability. Confirm current local emergency numbers and official safety guidance before travel. In an emergency, contact local emergency services directly.
