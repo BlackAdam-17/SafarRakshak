@@ -232,6 +232,10 @@ form.addEventListener('submit', async (event) => {
     showStatus(error.message || 'Could not calculate route options. Please try again.', true);
     routes = [];
     clearMap();
+    if (map) {
+      map.remove();
+      map = null;
+    }
     mapElement.innerHTML = '<div class="route-map-placeholder">No route preview is available. Check the place names or try again later.</div>';
   } finally {
     findButton.disabled = false;
@@ -246,7 +250,10 @@ form.addEventListener('reset', () => {
   results.replaceChildren();
   summary.replaceChildren();
   clearMap();
-  map = null;
+  if (map) {
+    map.remove();
+    map = null;
+  }
   mapElement.innerHTML = '<div class="route-map-placeholder">Enter a starting point and destination to preview route options.</div>';
   showStatus('Route details cleared.');
 });
