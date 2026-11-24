@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f5f6f1" />
     <meta name="description" content="Plan a safer trip with personal check-ins, trusted contacts, and nearby police station details." />
     <title>SafarRakshak — Travel safety, thoughtfully planned</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=2" />
   </head>
   <body>
     <div class="shell">
@@ -15,11 +15,15 @@
           <span class="brand-mark" aria-hidden="true">S</span>
           <span class="brand-name">SafarRakshak <span>Travel safety</span></span>
         </a>
-        <nav class="nav" aria-label="Main navigation">
-          <a href="#journey">My journey</a>
-          <a href="#check-ins">Check-ins</a>
-          <a href="#emergency">Emergency help</a>
-        </nav>
+        <div class="topbar-actions">
+          <nav class="nav" aria-label="Main navigation">
+            <a href="#journey">My journey</a>
+            <a href="#check-ins">Check-ins</a>
+            <a href="./trip-area.html">Trip Area</a>
+            <a href="#emergency">Emergency help</a>
+          </nav>
+          <div class="account-area" id="accountArea"></div>
+        </div>
       </header>
 
       <main id="home">
@@ -55,7 +59,7 @@
               <p class="eyebrow">Your trip, in one place</p>
               <h2 id="journey-title">My safety plan</h2>
             </div>
-            <p>Trip details and your trusted contact are saved only in this browser.</p>
+            <p>Trip details and your trusted contact are encrypted and saved to your signed-in account.</p>
           </div>
           <div class="columns">
             <article class="card">
@@ -84,7 +88,7 @@
                 </div>
                 <div class="form-actions">
                   <button class="button button-primary" type="submit">Save safety plan</button>
-                  <p class="form-hint">Only stored on this device.</p>
+                  <p class="form-hint">Saved privately to your account.</p>
                 </div>
                 <p class="status" id="planStatus" role="status" aria-live="polite"></p>
               </form>
@@ -107,7 +111,7 @@
                 <button class="button button-primary button-small" type="submit">Add check-in</button>
               </form>
               <ul class="checkin-list" id="checkinList"></ul>
-              <p class="local-note">Marking a check-in records it on this device only. It does not notify your contact or emergency services.</p>
+              <p class="local-note">Check-ins are saved to your account. They do not notify your contact or emergency services.</p>
             </article>
           </div>
         </section>
@@ -116,8 +120,8 @@
           <strong>Important:</strong> SafarRakshak does not dispatch emergency alerts or guarantee the accuracy or availability of map listings. Police station details come from OpenStreetMap contributors. In an emergency, use verified local emergency services and follow official guidance.
         </aside>
       </main>
-      <footer>SafarRakshak · Your trip details stay in this browser. Check current local safety information before you travel.</footer>
+      <footer>SafarRakshak · Check current local safety information before you travel.</footer>
     </div>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=3"></script>
   </body>
 </html>
